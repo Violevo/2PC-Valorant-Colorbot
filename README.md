@@ -33,6 +33,8 @@ This project creates an external **colorbot** for **Valorant** that uses a two-c
    - The Pico decodes the data and relays it through **SPI** to the mouse’s PCB, adding the received movement to the sensor data and simulating mouse movement.
    - When the triggerbot signal is received, the Pico outputs a voltage to simulate a mouse click.
 
+![Valorant Colorbot V3](https://github.com/user-attachments/assets/90100e89-c0d5-4ff4-bcb1-af005d64ae1a)
+
 ---
 
 ## Installation
