@@ -4,8 +4,6 @@
 
 This project creates an external **colorbot** for **Valorant** that uses a two-computer setup to detect enemy players and trigger mouse movements and clicks, using NDI to transfer video frames between computers. By analysing frames captured by OBS and processing them on a second computer, this simulates mouse movement and clicks in response to the game’s environment, using a Raspberry Pi Pico to interface with the mouse on a hardware level, making it **completely** undetectable to **any** anticheat (tested undetected for VGK).
 
-Aimbot
-
 https://github.com/user-attachments/assets/ac019950-a0ac-433c-b8cd-d820d9b15f62
 
 
