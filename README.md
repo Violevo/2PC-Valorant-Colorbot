@@ -34,10 +34,13 @@ https://github.com/user-attachments/assets/ac019950-a0ac-433c-b8cd-d820d9b15f62
    - The processed data (mouse movement and triggerbot signal) is sent over USB to a **Raspberry Pi Pico**.
 8. **The Pico Relays Signals to the Mouse Circuit Board**:
    - The Pico decodes the data and relays it through **SPI** to the mouse’s PCB, adding the received movement to the sensor data and simulating mouse movement.
-   - When the triggerbot signal is received, the Pico outputs a voltage to simulate a mouse click.
+   - if a triggerbot signal is received, the Pico outputs a voltage to short the left click button and simulate a mouse click.
+
+     for more info on SPI, see [Wikepedia](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)
+---
+### Visualisation
 
 ![image](https://github.com/user-attachments/assets/3bc80cc7-9d33-45fb-a8aa-60e86ab7a49a)
-
 
 ---
 
@@ -95,10 +98,7 @@ https://github.com/user-attachments/assets/ac019950-a0ac-433c-b8cd-d820d9b15f62
 
 ## Credits
 
-- [Initial Development Ideas](https://www.unknowncheats.me/forum/valorant/576868-simple-colorbot-2023-a.html)
 - [Colour Filtering](https://www.unknowncheats.me/forum/valorant/587689-fast-hue-l2-distance-based-color-filtering-using-numpy.html)
-- [Colour Filtering](https://www.unknowncheats.me/forum/valorant/587689-fast-hue-l2-distance-based-color-filtering-using-numpy.html)
-- [Triggerbot Optimisations](https://www.unknowncheats.me/forum/3072055-post10.html)
 - [Sensitivity Calculation](https://www.unknowncheats.me/forum/valorant/499748-pixel-silent-aim.html)
 
 ---
