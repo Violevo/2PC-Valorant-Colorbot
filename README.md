@@ -96,6 +96,15 @@ https://github.com/user-attachments/assets/ac019950-a0ac-433c-b8cd-d820d9b15f62
 
 ---
 
+## Todo
+- Improve the NDI source finder, maybe with options to select sources and an option to stop searching and exit
+- Add Menu UI for the client
+- Potential redevelop in c++
+- Add humanised aim ([Bezier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve#:~:text=B%C3%A9zier%20curves%20are%20widely%20used,to%20manipulate%20the%20curve%20intuitively.))
+
+
+---
+
 ## Credits
 
 - [Colour Filtering](https://www.unknowncheats.me/forum/valorant/587689-fast-hue-l2-distance-based-color-filtering-using-numpy.html)
