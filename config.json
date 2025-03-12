@@ -1,0 +1,7 @@
+{
+    "TOGGLE_KEY": "F1",
+    "FOV": 50,
+    "RESOLUTION": [1920, 1080],
+    "LOWER_COLOR": [140, 110, 150],
+    "UPPER_COLOR": [150, 195, 255]
+}
