@@ -1,4 +1,4 @@
-import os, threading, time
+import os, threading, time, sys
 
 try:
     import numpy as np
@@ -19,12 +19,19 @@ except ImportError:
     from PIL import Image
 
 try:
+    import msvcrt
+except ImportError:
+    os.system("pip install msvcrt")
+    import msvcrt
+
+
+try:
     import ndi
 except ImportError:
     print("[Error] NDI lib not installed. Follow (https://github.com/buresu/ndi-python) for help")
     exit()
 
-class ScreenCapture:
+class ScreenCapture:  
     def __init__(self, x=0, y=0, grabzone=500):
         self.x, self.y, self.grabzone = x, y, grabzone
         self.screen = np.zeros((grabzone, grabzone, 3), np.uint8)
@@ -45,12 +52,61 @@ class ScreenCapture:
             print('[Error] Failed to create NDI finder. Check (https://docs.ndi.video/all/developing-with-ndi/sdk)')
             return
 
-        # Wait until an NDI source is found (Max wait: 10s) --- todo ---
+        # Continuously refresh NDI sources until selected
         sources = []
-        timeout = time.time() + 10  
-        while not sources and time.time() < timeout:
-            ndi.find_wait_for_sources(ndi_find, 1000)
-            sources = ndi.find_get_current_sources(ndi_find)
+        buffer = ""
+        print("Searching for NDI sources... Type a number to select a source.\n")
+
+        try:
+            while True:
+                ndi.find_wait_for_sources(ndi_find, 100)
+                new_sources = ndi.find_get_current_sources(ndi_find)
+                
+                if new_sources != sources:
+                    sources = new_sources
+                    # Clear previous output
+                    print("\033[H\033[J", end="") 
+                    print("Searching for NDI sources... Type a number to select a source.\n")
+                    print("Available NDI sources:")
+                    if sources:
+                        for i, source in enumerate(sources):
+                            print(f"{i}. {source.ndi_name}")
+                    else:
+                        print("No sources found yet.")
+                    print(f"\nCurrent input: {buffer}")
+                
+                # Check for user input
+                if msvcrt.kbhit():
+                    char = msvcrt.getch().decode('utf-8')
+                    
+                    if char in ('\b', '\x7f'): 
+                        if buffer:
+                            buffer = buffer[:-1]
+                    elif char in ('\r', '\n'):
+                        if buffer:
+                            try:
+                                selection = int(buffer)
+                                if 0 <= selection < len(sources):
+                                    selected_source = sources[selection]
+                                    print(f"\nSelected source: {selected_source.ndi_name}")
+                                    break  
+                                else:
+                                    print("\nInvalid selection. Please try again.")
+                                    buffer = ""
+                            except ValueError:
+                                print("\nPlease enter a valid number.")
+                                buffer = ""
+
+                    elif char.isdigit():
+                        buffer += char
+                    
+                    print(f"\rCurrent input: {buffer}                 ", end="")
+                    sys.stdout.flush()
+                
+                time.sleep(0.1)
+                    
+        except KeyboardInterrupt:
+            print("\nSearch cancelled by user.")
 
         if not sources:
             print('[Error] No NDI sources found. Ensure there is an NDI broadcast on your network, see (https://github.com/DistroAV/DistroAV)')
