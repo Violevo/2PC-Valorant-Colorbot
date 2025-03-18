@@ -17,7 +17,7 @@ def main():
     os.system('title Colorbot')
 
     # Load config
-    with open('data.json', 'r') as file:
+    with open('config.json', 'r') as file:
         config = json.load(file)
 
     # Update variables
