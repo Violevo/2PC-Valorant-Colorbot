@@ -3,7 +3,6 @@
     "TRIGGER_KEY": "f2",
     "TRIGGER_DELAY": 25,
     "FOV": 50,
-    "ACCURACY": 80,
     "RESOLUTION": [
         "1920",
         "1080"

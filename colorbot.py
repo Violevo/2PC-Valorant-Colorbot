@@ -3,11 +3,6 @@ from screen_capture import ScreenCapture
 from mouse import PicoMouse
 
 try:
-    import win32api  
-except ImportError:
-    os.system("pip install pywin32")  
-    import win32api
-try:
     import cv2  
 except ImportError:
     os.system("pip install opencv-python") 
@@ -19,9 +14,19 @@ except ImportError:
     import numpy
 
 class Colorbot:
-    def __init__(self, x, y, grabzone, LOWER_COLOR, UPPER_COLOR):
-        self.LOWER_COLOR = LOWER_COLOR  
-        self.UPPER_COLOR = UPPER_COLOR  
+    def __init__(self, x, y, grabzone, color, aim_enabled, trigger_enabled):
+        if color == "Purple":
+            self.LOWER_COLOR = numpy.array([140, 110, 150])
+            self.UPPER_COLOR = numpy.array([150, 195, 255])
+        if color == "Red":
+            self.LOWER_COLOR = numpy.array([140, 110, 150])
+            self.UPPER_COLOR = numpy.array([150, 195, 255])
+        if color == "Yellow":
+            self.LOWER_COLOR = numpy.array([30, 125, 150])
+            self.UPPER_COLOR = numpy.array([30, 255, 255])
+
+        self.aim_enabled = aim_enabled
+        self.trigger_enabled = trigger_enabled
         self.arduinomouse = PicoMouse()  
         self.grabber = ScreenCapture(x, y, grabzone)  
         threading.Thread(target=self.run, daemon=True).start()
@@ -34,16 +39,16 @@ class Colorbot:
     # Threaded keychecker
     def run(self):
         while True:
-            if win32api.GetAsyncKeyState(0x02) < 0 and self.toggled:  # right click
+            if self.aim_enabled: 
                 self.process("move") 
-            elif win32api.GetAsyncKeyState(0x12) < 0 and self.toggled:  # alt
+            elif self.trigger_enabled: 
                 self.process("click") 
 
     def process(self, action):
         screen = self.grabber.get_screen()  
         hsv = cv2.cvtColor(screen, cv2.COLOR_BGR2HSV)  
         mask = cv2.inRange(hsv, self.LOWER_COLOR, self.UPPER_COLOR) 
-        dilated = cv2.dilate(mask, None, iterations=5)  #
+        dilated = cv2.dilate(mask, None, iterations=5)
         contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         if not contours: # no enemies

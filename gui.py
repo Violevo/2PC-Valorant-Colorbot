@@ -1,9 +1,14 @@
 import os
 import queue
-import json
 from threading import Thread
-from tkinter import PhotoImage
+import time
+from colorbot import Colorbot
 
+try:
+    import json
+except ImportError:
+    os.system("pip install json")
+    import json
 try:
     import keyboard
 except ImportError:
@@ -31,9 +36,9 @@ class App(customtkinter.CTk):
         self.trigger_key = config['TRIGGER_KEY']
         self.trigger_delay = config['TRIGGER_DELAY']
         self.fov = config['FOV']
-        self.accuracy = config['ACCURACY']
         self.shared_color = config['ENEMY_COLOR']
         self.resolution = config['RESOLUTION']
+        self.enabled = False 
 
         self.formatted_resolution = 'x'.join(map(str, self.resolution))
 
@@ -48,7 +53,7 @@ class App(customtkinter.CTk):
         self.geometry("750x220")
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
-
+        
         # Sidebar
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=6, sticky="nsew")
@@ -56,7 +61,7 @@ class App(customtkinter.CTk):
 
         self.logo_label = customtkinter.CTkLabel(
             self.sidebar_frame, 
-            text="Coloraim v1.0.0", 
+            text="Coloraim v1.0", 
             font=customtkinter.CTkFont(size=20, weight="bold")
         )
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
@@ -101,7 +106,8 @@ class App(customtkinter.CTk):
         self.switch_aim = customtkinter.CTkSwitch(
             master=self.aimbot_frame, 
             text="Enabled", 
-            font=customtkinter.CTkFont(size=20, weight="bold")
+            font=customtkinter.CTkFont(size=20, weight="bold"),
+            command = self.toggle_aim
         )
         self.switch_aim.grid(row=0, column=0, padx=20, pady=20)
 
@@ -150,36 +156,14 @@ class App(customtkinter.CTk):
         )
         self.label_aim_FOV_value.grid(row=1, column=2, padx=0, pady=20)
 
-        self.label_aim_precision = customtkinter.CTkLabel(
-            master=self.aimbot_frame, 
-            text="Accuracy", 
-            font=customtkinter.CTkFont(size=20, weight="bold")
-        )
-        self.label_aim_precision.grid(row=2, column=0, padx=10, pady=20)
-
-        self.slider_aim_precision = customtkinter.CTkSlider(
-            master=self.aimbot_frame, 
-            command=self.precision_slider_callback, 
-            from_=0, to=100
-        )
-        self.slider_aim_precision.grid(row=2, column=1, padx=0, pady=20)
-        self.slider_aim_precision.set(self.accuracy)
-
-        self.label_aim_precision_value = customtkinter.CTkLabel(
-            master=self.aimbot_frame, 
-            width=80, height=20, 
-            font=customtkinter.CTkFont(size=20, weight="bold"), 
-            text=str(self.accuracy)
-        )
-        self.label_aim_precision_value.grid(row=2, column=2, padx=0, pady=20)
-
         # ---------------------------
         # Triggerbot Page
         # ---------------------------
         self.switch_trigger = customtkinter.CTkSwitch(
             master=self.triggerbot_frame, 
             text="Enabled", 
-            font=customtkinter.CTkFont(size=20, weight="bold")
+            font=customtkinter.CTkFont(size=20, weight="bold"),
+            command = self.toggle_trigger
         )
         self.switch_trigger.grid(row=0, column=0, padx=20, pady=20)
 
@@ -287,8 +271,24 @@ class App(customtkinter.CTk):
         # Set the default page to Aimbot
         self.show_frame(self.aimbot_frame)
 
+        key_listener_thread = Thread(target=self.listen_for_keys, daemon=True)
+        key_listener_thread.start()
+
+    def toggle_aim(self):
+        self.enabled = not self.enabled
+        if self.enabled:
+            self.start_app()
+
+    def toggle_trigger(self):
+        self.enabled_trigger = not self.enabled_trigger
+        if self.enabled_trigger:
+            self.start_app()
+
+    def start_app(self):
+        thread = Thread(target=self.main, daemon=True)
+        thread.start()
+
     def show_frame(self, frame):
-        """Raise the given frame to the top of the content area."""
         frame.tkraise()
 
     def aimbot_button(self):
@@ -299,6 +299,14 @@ class App(customtkinter.CTk):
 
     def misc_button(self):
         self.show_frame(self.misc_frame)
+
+    def listen_for_keys(self):
+        while True:
+            if keyboard.is_pressed(self.aim_key):
+                self.switch_aim.toggle()
+            if keyboard.is_pressed(self.trigger_key):
+                self.switch_trigger.toggle()
+            time.sleep(0.1)
 
     def on_key_event(self, key_event):
         key_name = key_event.name  # Get the pressed key's name
@@ -318,13 +326,11 @@ class App(customtkinter.CTk):
         keyboard.wait()
 
     def change_key_text(self, key_target):
-        # Set which key button is to be updated and start the listener thread.
         self.current_key_target = key_target
         listener_thread = Thread(target=self.key_listener_thread, daemon=True)
         listener_thread.start()
 
     def color_change_callback(self, new_color):
-        """This callback updates both color comboboxes to use the same shared color."""
         self.shared_color = new_color
         self.combobox_aim_color.set(new_color)
         self.combobox_trigger_color.set(new_color)
@@ -340,11 +346,6 @@ class App(customtkinter.CTk):
         self.label_trigger_delay_value.configure(text=int(value))
         self.trigger_delay = value
 
-    def precision_slider_callback(self, value):
-        self.slider_aim_precision.set(value)
-        self.label_aim_precision_value.configure(text=int(value))
-        self.accuracy = value
-
     def load_config(self):
         with open('config.json', 'r') as file:
             config = json.load(file)
@@ -353,13 +354,9 @@ class App(customtkinter.CTk):
         self.trigger_key = config['TRIGGER_KEY']
         self.trigger_delay = config['TRIGGER_DELAY']
         self.fov = config['FOV']
-        self.accuracy = config['ACCURACY']
         self.shared_color = config['ENEMY_COLOR']
 
-        print("config loaded")
-
     def save_config(self):
-
         resolution = (self.resolution_input.get()).split('x')
 
         config = {
@@ -367,7 +364,6 @@ class App(customtkinter.CTk):
                     "TRIGGER_KEY": self.trigger_key.removeprefix("Key: "),
                     "TRIGGER_DELAY": round(self.trigger_delay),
                     "FOV": round(self.fov),
-                    "ACCURACY": round(self.accuracy),
                     "RESOLUTION": resolution,
                     "ENEMY_COLOR": self.shared_color
                 }
@@ -375,8 +371,21 @@ class App(customtkinter.CTk):
         with open("config.json", "w") as file:
             json.dump(config, file, indent=4)
 
-        print("saved config")
+    def main(self):
+        if self.enabled:
+            print ("Aimbot enabled")
+        if self.enabled_trigger:
+            print ("Triggerbot enabled")
 
+        CENTER_X, CENTER_Y = int(self.resolution[0]) // 2, int(self.resolution[1]) // 2
+        colorbot = Colorbot(CENTER_X - self.fov // 2, CENTER_Y - self.fov // 2, self.fov, self.shared_color, self.enabled, self.enabled_trigger)
+
+        colorbot.toggle()
+        while True:
+            if not self.enabled and not self.enabled_trigger:
+                colorbot.close()
+                break
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     app = App()
