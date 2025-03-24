@@ -18,7 +18,6 @@ except ImportError:
     os.system("pip install msvcrt")
     import msvcrt
 
-
 try:
     import ndi
 except ImportError:
